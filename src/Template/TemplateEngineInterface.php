@@ -2,7 +2,7 @@
 
 namespace FormRelay\Mail\Template;
 
-interface TemplateEngineInerface
+interface TemplateEngineInterface
 {
     /**
      * @param mixed $template

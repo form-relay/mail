@@ -4,7 +4,7 @@ namespace FormRelay\Mail\Template;
 
 use FormRelay\Core\Utility\GeneralUtility;
 
-class DefaultTemplateEngine implements TemplateEngineInerface
+class DefaultTemplateEngine implements TemplateEngineInterface
 {
     public function render($template, array $data): string
     {

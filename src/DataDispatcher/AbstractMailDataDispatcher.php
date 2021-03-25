@@ -5,33 +5,24 @@ namespace FormRelay\Mail\DataDispatcher;
 use FormRelay\Core\DataDispatcher\DataDispatcher;
 use FormRelay\Core\Exception\FormRelayException;
 use FormRelay\Core\Model\Form\MultiValueField;
-use FormRelay\Core\Model\Form\UploadFormField;
+use FormRelay\Core\Model\Form\UploadField;
 use FormRelay\Core\Service\RegistryInterface;
+use FormRelay\Mail\Manager\DefaultMailManager;
+use FormRelay\Mail\Manager\MailManagerInterface;
+use FormRelay\Mail\Model\Form\EmailField;
 use FormRelay\Mail\Template\DefaultTemplateEngine;
-use FormRelay\Mail\Template\TemplateEngineInerface;
+use FormRelay\Mail\Template\TemplateEngineInterface;
+use FormRelay\Mail\Utility\MailUtility;
 use Swift_Attachment;
 use Swift_RfcComplianceException;
-use Swift_Mailer;
 use Swift_Message;
-use Swift_SendmailTransport;
-use Swift_SmtpTransport;
+use Swift_SwiftException;
 
 abstract class AbstractMailDataDispatcher extends DataDispatcher
 {
-    const TRANSPORT_TYPE = 'type';
-    const TRANSPORT_TYPE_SENDMAIL = 'sendmail';
-    const TRANSPORT_TYPE_SMTP = 'smtp';
-
-    const TRANSPORT_CONFIG = 'config';
-    const TRANSPORT_CONFIG_SENDMAIL_CMD = 'cmd';
-    const TRANSPORT_CONFIG_SMTP_DOMAIN = 'domain';
-    const TRANSPORT_CONFIG_SMTP_PORT = 'port';
-    const TRANSPORT_CONFIG_SMTP_USERNAME = 'username';
-    const TRANSPORT_CONFIG_SMTP_PASSWORD = 'password';
-
+    protected $mailManager;
     protected $templateEngine;
 
-    protected $transportConfiguration = [];
     protected $attachUploadedFiles = false;
 
     protected $from = '';
@@ -39,9 +30,10 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
     protected $replyTo = '';
     protected $subject = '';
 
-    public function __construct(RegistryInterface $registry) {
+    public function __construct(RegistryInterface $registry, MailManagerInterface $mailManager = null, TemplateEngineInterface $templateEngine = null) {
         parent::__construct($registry);
-        $this->templateEngine = new DefaultTemplateEngine();
+        $this->mailManager = $mailManager ?? new DefaultMailManager();
+        $this->templateEngine = $templateEngine ?? new DefaultTemplateEngine();
     }
 
     /**
@@ -99,7 +91,7 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
     {
         $uploadFields = $this->getUploadFields($data);
         if (!empty($uploadFields)) {
-            /** @var UploadFormField $uploadField */
+            /** @var UploadField $uploadField */
             foreach ($uploadFields as $uploadField) {
                 $message->attach(
                     Swift_Attachment::fromPath(
@@ -113,44 +105,17 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
 
     public function send(array $data): bool
     {
-        $mailer = $this->getMailer();
-        /** @var Swift_Message $message */
-        $message = $mailer->createMessage();
-        $this->processMetaData($message, $data);
-        $this->processContent($message, $data);
-        if ($this->attachUploadedFiles) {
-            $this->processAttachments($message, $data);
+        try {
+            $message = $this->mailManager->createMessage();
+            $this->processMetaData($message, $data);
+            $this->processContent($message, $data);
+            if ($this->attachUploadedFiles) {
+                $this->processAttachments($message, $data);
+            }
+            return $this->mailManager->sendMessage($message);
+        } catch (Swift_SwiftException $e) {
+            throw new FormRelayException($e->getMessage());
         }
-        return $mailer->send($message);
-    }
-
-    public function getTransport()
-    {
-        $transport = null;
-        $config = $this->transportConfiguration[static::TRANSPORT_CONFIG];
-        switch ($this->transportConfiguration[static::TRANSPORT_TYPE]) {
-            case static::TRANSPORT_TYPE_SENDMAIL:
-                $transport = new Swift_SendmailTransport($config[static::TRANSPORT_CONFIG_SENDMAIL_CMD]);
-                break;
-            case static::TRANSPORT_TYPE_SMTP:
-                $transport = new Swift_SmtpTransport(
-                    $config[static::TRANSPORT_CONFIG_SMTP_DOMAIN],
-                    $config[static::TRANSPORT_CONFIG_SMTP_PORT]
-                );
-                if (isset($config[static::TRANSPORT_CONFIG_SMTP_USERNAME],)) {
-                    $transport->setUsername($config[static::TRANSPORT_CONFIG_SMTP_USERNAME]);
-                }
-                if (isset($config[static::TRANSPORT_CONFIG_SMTP_PASSWORD])) {
-                    $transport->setPassword($config[static::TRANSPORT_CONFIG_SMTP_PASSWORD]);
-                }
-                break;
-        }
-        return $transport;
-    }
-
-    protected function getMailer()
-    {
-        return new Swift_Mailer($this->getTransport());
     }
 
     /**
@@ -163,6 +128,9 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
      * 'Some Name <address@domain.tld>, address-2@domain.tld, Some Other Name <address-3@domain.tld>'
      * ['address@domain.tld', 'Some Name <address@domain.tld>']
      * MultiValueField(['address@domain.tld', 'Some Name <address@domain.tld>'])
+     * EmailField()
+     * [EmailField(), 'address@domain.tld']
+     * MultiValue([EmailField(), 'address@domain.tld'])
      *
      * @param string|array|MultiValueField $addresses
      * @param bool $onlyOneAddress
@@ -170,39 +138,40 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
      */
     protected function getAddressData($addresses, $onlyOneAddress = false)
     {
-        if ($onlyOneAddress) {
+        if ($addresses instanceof EmailField) {
+            $addresses = [$addresses];
+        } elseif ($onlyOneAddress) {
             $addresses = [(string)$addresses];
-        } else {
-            if ($addresses instanceof MultiValueField) {
-                $addresses = $addresses->toArray();
-            } elseif (!is_array($addresses)) {
-                $addresses = array_map('trim', explode(',', $addresses));
-            }
-            $addresses = array_map(function($a) { return (string)$a; }, $addresses);
-            $addresses = array_filter($addresses);
+        } elseif ($addresses instanceof MultiValueField) {
+            $addresses = $addresses->toArray();
+        } elseif (!is_array($addresses)) {
+            $addresses = array_map('trim', explode(',', (string)$addresses));
         }
+        $addresses = array_filter($addresses);
 
         $result = [];
         foreach ($addresses as $address) {
-            $matches = [];
-            // Some Name <some-address@domain.tld>
-            if (preg_match('/^([^<]+)<([^>]+)>$/', $address, $matches)) {
-                $result[$matches[2]] = $matches[1];
+            $name = '';
+            $email = '';
+            if ($address instanceof EmailField) {
+                $name = $address->getName();
+                $email = $address->getAddress();
             } else {
-                $result[] = $address;
+                // Some Name <some-address@domain.tld>
+                if (preg_match('/^([^<]+)<([^>]+)>$/', $address, $matches)) {
+                    $name = $matches[1];
+                    $email = $matches[2];
+                } else {
+                    $email = $address;
+                }
+            }
+            if ($name) {
+                $result[trim($email)] = MailUtility::encode($name);
+            } else {
+                $result[] = trim($email);
             }
         }
         return $result;
-    }
-
-    public function getTransportConfiguration(): array
-    {
-        return $this->transportConfiguration;
-    }
-
-    public function setTransportConfiguration(array $transportConfiguration)
-    {
-        $this->transportConfiguration = $transportConfiguration;
     }
 
     public function getAttachUploadedFiles(): bool
@@ -215,12 +184,12 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
         $this->attachUploadedFiles = $attachUploadedFiles;
     }
 
-    public function getTemplateEngine(): TemplateEngineInerface
+    public function getTemplateEngine(): TemplateEngineInterface
     {
         return $this->templateEngine;
     }
 
-    public function setTemplateEngine(TemplateEngineInerface $templateEngine)
+    public function setTemplateEngine(TemplateEngineInterface $templateEngine)
     {
         $this->templateEngine = $templateEngine;
     }
@@ -267,7 +236,7 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
 
     public function getUploadFields(array $data): array
     {
-        return array_filter($data, function($a) { return $a instanceof UploadFormField; });
+        return array_filter($data, function($a) { return $a instanceof UploadField; });
     }
 
     abstract protected function getPlainBody(array $data): string;

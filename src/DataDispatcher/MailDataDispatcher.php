@@ -2,7 +2,7 @@
 
 namespace FormRelay\Mail\DataDispatcher;
 
-use FormRelay\Core\Model\Form\UploadFormField;
+use FormRelay\Core\Model\Form\UploadField;
 use FormRelay\Core\Utility\GeneralUtility;
 
 class MailDataDispatcher extends AbstractMailDataDispatcher
@@ -33,7 +33,7 @@ class MailDataDispatcher extends AbstractMailDataDispatcher
     protected function getPlainBody(array $data): string
     {
         if ($this->getAttachUploadedFiles()) {
-            $data = array_filter($data, function($a) { return !$a instanceof UploadFormField; });
+            $data = array_filter($data, function($a) { return !$a instanceof UploadField; });
         }
         $valueDelimiter = GeneralUtility::parseSeparatorString($this->valueDelimiter);
         $lineDelimiter = GeneralUtility::parseSeparatorString($this->lineDelimiter);
