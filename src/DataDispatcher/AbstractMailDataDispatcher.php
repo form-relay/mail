@@ -7,6 +7,7 @@ use FormRelay\Core\Exception\FormRelayException;
 use FormRelay\Core\Model\Form\MultiValueField;
 use FormRelay\Core\Model\Form\UploadField;
 use FormRelay\Core\Service\RegistryInterface;
+use FormRelay\Core\Utility\GeneralUtility;
 use FormRelay\Mail\Manager\DefaultMailManager;
 use FormRelay\Mail\Manager\MailManagerInterface;
 use FormRelay\Mail\Model\Form\EmailField;
@@ -142,10 +143,8 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
             $addresses = [$addresses];
         } elseif ($onlyOneAddress) {
             $addresses = [(string)$addresses];
-        } elseif ($addresses instanceof MultiValueField) {
-            $addresses = $addresses->toArray();
-        } elseif (!is_array($addresses)) {
-            $addresses = array_map('trim', explode(',', (string)$addresses));
+        } else {
+            $addresses = GeneralUtility::castValueToArray($addresses);
         }
         $addresses = array_filter($addresses);
 
@@ -156,15 +155,14 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
             if ($address instanceof EmailField) {
                 $name = $address->getName();
                 $email = $address->getAddress();
-            } else {
+            } elseif (preg_match('/^([^<]+)<([^>]+)>$/', $address, $matches)) {
                 // Some Name <some-address@domain.tld>
-                if (preg_match('/^([^<]+)<([^>]+)>$/', $address, $matches)) {
-                    $name = $matches[1];
-                    $email = $matches[2];
-                } else {
-                    $email = $address;
-                }
+                $name = $matches[1];
+                $email = $matches[2];
+            } else {
+                $email = $address;
             }
+
             if ($name) {
                 $result[trim($email)] = MailUtility::encode($name);
             } else {
