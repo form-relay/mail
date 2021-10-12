@@ -51,7 +51,7 @@ class DefaultMailManager implements MailManagerInterface
                     $config[static::TRANSPORT_CONFIG_SMTP_DOMAIN],
                     $config[static::TRANSPORT_CONFIG_SMTP_PORT]
                 );
-                if (isset($config[static::TRANSPORT_CONFIG_SMTP_USERNAME],)) {
+                if (isset($config[static::TRANSPORT_CONFIG_SMTP_USERNAME])) {
                     $transport->setUsername($config[static::TRANSPORT_CONFIG_SMTP_USERNAME]);
                 }
                 if (isset($config[static::TRANSPORT_CONFIG_SMTP_PASSWORD])) {

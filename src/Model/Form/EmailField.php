@@ -32,4 +32,17 @@ class EmailField implements FieldInterface
     {
         return $this->name;
     }
+
+    public function pack(): array
+    {
+        return [
+            'address' => $this->address,
+            'name' => $this->name,
+        ];
+    }
+
+    public static function unpack(array $packed): FieldInterface
+    {
+        return new static($packed['address'], $packed['name']);
+    }
 }
