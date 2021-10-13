@@ -78,6 +78,6 @@ class DefaultMailManager implements MailManagerInterface
 
     public function sendMessage(Swift_Message $message): bool
     {
-        return $this->getMailer()->send($message);
+        return (bool)$this->getMailer()->send($message);
     }
 }

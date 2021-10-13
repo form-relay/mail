@@ -134,7 +134,7 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
      * [EmailField(), 'address@domain.tld']
      * MultiValue([EmailField(), 'address@domain.tld'])
      *
-     * @param string|array|MultiValueField $addresses
+     * @param string|array|MultiValueField|EmailField $addresses
      * @param bool $onlyOneAddress
      * @return array
      */
