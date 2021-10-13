@@ -15,8 +15,8 @@ use FormRelay\Mail\Template\DefaultTemplateEngine;
 use FormRelay\Mail\Template\TemplateEngineInterface;
 use FormRelay\Mail\Utility\MailUtility;
 use Swift_Attachment;
-use Swift_RfcComplianceException;
 use Swift_Message;
+use Swift_RfcComplianceException;
 use Swift_SwiftException;
 
 abstract class AbstractMailDataDispatcher extends DataDispatcher
@@ -31,7 +31,8 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
     protected $replyTo = '';
     protected $subject = '';
 
-    public function __construct(LoggerInterface $logger, MailManagerInterface $mailManager = null, TemplateEngineInterface $templateEngine = null) {
+    public function __construct(LoggerInterface $logger, MailManagerInterface $mailManager = null, TemplateEngineInterface $templateEngine = null)
+    {
         parent::__construct($logger);
         $this->mailManager = $mailManager ?? new DefaultMailManager();
         $this->templateEngine = $templateEngine ?? new DefaultTemplateEngine();
@@ -234,7 +235,7 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
 
     public function getUploadFields(array $data): array
     {
-        return array_filter($data, function($a) { return $a instanceof UploadField; });
+        return array_filter($data, function ($a) { return $a instanceof UploadField; });
     }
 
     abstract protected function getPlainBody(array $data): string;

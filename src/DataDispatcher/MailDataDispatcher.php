@@ -33,7 +33,7 @@ class MailDataDispatcher extends AbstractMailDataDispatcher
     protected function getPlainBody(array $data): string
     {
         if ($this->getAttachUploadedFiles()) {
-            $data = array_filter($data, function($a) { return !$a instanceof UploadField; });
+            $data = array_filter($data, function ($a) { return !$a instanceof UploadField; });
         }
         $valueDelimiter = GeneralUtility::parseSeparatorString($this->valueDelimiter);
         $lineDelimiter = GeneralUtility::parseSeparatorString($this->lineDelimiter);
