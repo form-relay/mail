@@ -11,18 +11,10 @@ abstract class AbstractMailRoute extends Route
 
     const DEFAULT_PASSTHROUGH_FIELDS = true;
 
-    const KEY_TRANSPORT_CONFIGURATION = 'transportConfiguration';
-    const DEFAULT_TRANSPORT_CONFIGURATION = [
-        AbstractMailDataDispatcher::TRANSPORT_TYPE => AbstractMailDataDispatcher::TRANSPORT_TYPE_SENDMAIL,
-        AbstractMailDataDispatcher::TRANSPORT_CONFIG => [
-            AbstractMailDataDispatcher::TRANSPORT_CONFIG_SENDMAIL_CMD => '/usr/sbin/sendmail -bs',
-        ],
-    ];
-
-    const KEY_FROM = 'from';
+    const KEY_FROM = 'sender';
     const DEFAULT_FROM = '';
 
-    const KEY_TO = 'to';
+    const KEY_TO = 'recipients';
     const DEFAULT_TO = '';
 
     const KEY_REPLY_TO = 'replyTo';
@@ -31,14 +23,13 @@ abstract class AbstractMailRoute extends Route
     const KEY_SUBJECT = 'subject';
     const DEFAULT_SUBJECT = 'New Form Submission';
 
-    const KEY_ATTACH_UPLOADED_FILES = 'attachUploadedFiles';
+    const KEY_ATTACH_UPLOADED_FILES = 'includeAttachmentsInMail';
     const DEFAULT_ATTACH_UPLOADED_FILES = false;
 
     protected function getDispatcher()
     {
         /** @var AbstractMailDataDispatcher $dispatcher */
         $dispatcher = $this->registry->getDataDispatcher(static::DATA_DISPATCHER_KEYWORD);
-        $dispatcher->setTransportConfiguration($this->getConfig(static::KEY_TRANSPORT_CONFIGURATION));
 
         $from = $this->resolveContent($this->getConfig(static::KEY_FROM));
         $dispatcher->setFrom($from);
@@ -61,7 +52,6 @@ abstract class AbstractMailRoute extends Route
     public static function getDefaultConfiguration(): array
     {
         return parent::getDefaultConfiguration() + [
-                static::KEY_TRANSPORT_CONFIGURATION => static::DEFAULT_TRANSPORT_CONFIGURATION,
                 static::KEY_FROM => static::DEFAULT_FROM,
                 static::KEY_TO => static::DEFAULT_TO,
                 static::KEY_REPLY_TO => static::DEFAULT_REPLY_TO,

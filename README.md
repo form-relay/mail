@@ -1,5 +1,5 @@
-Form Relay Salesforce
-=====================
+Form Relay Mail
+===============
 
 Provides a route for the form-relay package, which can send form submissions via email.
 
