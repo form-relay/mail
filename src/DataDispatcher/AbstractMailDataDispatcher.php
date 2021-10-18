@@ -71,7 +71,7 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
             $subject = $this->getSubject($data);
             $message->setSubject($this->sanitizeHeaderString($subject));
         } catch (Swift_RfcComplianceException $e) {
-            throw new FormRelayException($e->getMessage());
+            throw new FormRelayException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -105,7 +105,7 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
         }
     }
 
-    public function send(array $data): bool
+    public function send(array $data)
     {
         try {
             $message = $this->mailManager->createMessage();
@@ -114,9 +114,11 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
             if ($this->attachUploadedFiles) {
                 $this->processAttachments($message, $data);
             }
-            return $this->mailManager->sendMessage($message);
+            if (!$this->mailManager->sendMessage($message)) {
+                throw new FormRelayException('no email was sent');
+            }
         } catch (Swift_SwiftException $e) {
-            throw new FormRelayException($e->getMessage());
+            throw new FormRelayException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
