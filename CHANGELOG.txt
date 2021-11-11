@@ -1,4 +1,8 @@
 
+2.0.1
+
+[BUGFIX] fix for field names with a slash character
+
 2.0.0
 
 [FEATURE] Asynchronous Submissions
