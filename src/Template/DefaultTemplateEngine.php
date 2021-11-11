@@ -10,7 +10,7 @@ class DefaultTemplateEngine implements TemplateEngineInterface
     {
         $result = GeneralUtility::parseSeparatorString($template);
         foreach ($data as $field => $value) {
-            $result = preg_replace('/\{' . preg_quote($field) . '\}/', $value, $result);
+            $result = str_replace('{' . $field . '}', $value, $result);
         }
         return $result;
     }
