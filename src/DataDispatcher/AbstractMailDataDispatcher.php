@@ -7,6 +7,7 @@ use FormRelay\Core\Exception\FormRelayException;
 use FormRelay\Core\Log\LoggerInterface;
 use FormRelay\Core\Model\Form\MultiValueField;
 use FormRelay\Core\Model\Form\UploadField;
+use FormRelay\Core\Service\PluginRegistryInterface;
 use FormRelay\Core\Utility\GeneralUtility;
 use FormRelay\Mail\Manager\DefaultMailManager;
 use FormRelay\Mail\Manager\MailManagerInterface;
@@ -31,9 +32,9 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
     protected $replyTo = '';
     protected $subject = '';
 
-    public function __construct(LoggerInterface $logger, MailManagerInterface $mailManager = null, TemplateEngineInterface $templateEngine = null)
+    public function __construct(string $keyword, PluginRegistryInterface $registry, LoggerInterface $logger, MailManagerInterface $mailManager = null, TemplateEngineInterface $templateEngine = null)
     {
-        parent::__construct($logger);
+        parent::__construct($keyword, $registry, $logger);
         $this->mailManager = $mailManager ?? new DefaultMailManager();
         $this->templateEngine = $templateEngine ?? new DefaultTemplateEngine();
     }
