@@ -14,10 +14,9 @@ use FormRelay\Mail\Model\Form\EmailField;
 use FormRelay\Mail\Template\DefaultTemplateEngine;
 use FormRelay\Mail\Template\TemplateEngineInterface;
 use FormRelay\Mail\Utility\MailUtility;
-use Swift_Attachment;
-use Swift_Message;
-use Swift_RfcComplianceException;
-use Swift_SwiftException;
+
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Exception\RfcComplianceException;
 
 abstract class AbstractMailDataDispatcher extends DataDispatcher
 {
@@ -54,7 +53,7 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
         return $string;
     }
 
-    protected function processMetaData(Swift_Message &$message, array $data)
+    protected function processMetaData(Email &$message, array $data)
     {
         try {
             $from = $this->getFrom($data);
@@ -70,36 +69,35 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
 
             $subject = $this->getSubject($data);
             $message->setSubject($this->sanitizeHeaderString($subject));
-        } catch (Swift_RfcComplianceException $e) {
+        } catch (RfcComplianceException $e) {
             throw new FormRelayException($e->getMessage());
         }
     }
 
-    protected function processContent(Swift_Message &$message, array $data)
+    protected function processContent(Email &$message, array $data)
     {
         $plainBody = $this->getPlainBody($data);
         $htmlBody = $this->getHtmlBody($data);
         if ($htmlBody) {
-            $message->setBody($htmlBody, 'text/html');
+            $message->html($htmlBody, 'text/html');
             if ($plainBody) {
-                $message->addPart($plainBody, 'text/plain');
+                $message->text($plainBody, 'text/plain');
             }
         } elseif ($plainBody) {
-            $message->setBody($plainBody, 'text/plain');
+            $message->text($plainBody, 'text/plain');
         }
     }
 
-    protected function processAttachments(Swift_Message &$message, array $data)
+    protected function processAttachments(Email &$message, array $data)
     {
         $uploadFields = $this->getUploadFields($data);
         if (!empty($uploadFields)) {
             /** @var UploadField $uploadField */
             foreach ($uploadFields as $uploadField) {
-                $message->attach(
-                    Swift_Attachment::fromPath(
-                        $uploadField->getRelativePath(),
+                $message->attachFromPath(
+                        $uploadField->getRelativePath(), 
+                        $uploadField->getFileName(),
                         $uploadField->getMimeType()
-                    )->setFilename($uploadField->getFileName())
                 );
             }
         }
@@ -115,7 +113,7 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
                 $this->processAttachments($message, $data);
             }
             return $this->mailManager->sendMessage($message);
-        } catch (Swift_SwiftException $e) {
+        } catch (\Exception $e) {
             throw new FormRelayException($e->getMessage());
         }
     }
