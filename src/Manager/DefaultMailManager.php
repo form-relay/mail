@@ -2,11 +2,10 @@
 
 namespace FormRelay\Mail\Manager;
 
-use Swift_Mailer;
-use Swift_Message;
-use Swift_SendmailTransport;
-use Swift_SmtpTransport;
-use Swift_Transport;
+use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mailer\Transport\SendmailTransport;
+use Symfony\Component\Mailer\Transport\Smtp\SmtpTransport;
+use Symfony\Component\Mime\Email;
 
 class DefaultMailManager implements MailManagerInterface
 {
@@ -38,16 +37,16 @@ class DefaultMailManager implements MailManagerInterface
         $this->transportConfiguration = $transportConfiguration;
     }
 
-    public function getTransport(): Swift_Transport
+    public function getTransport(): Transport
     {
         $transport = null;
         $config = $this->transportConfiguration[static::TRANSPORT_CONFIG];
         switch ($this->transportConfiguration[static::TRANSPORT_TYPE]) {
             case static::TRANSPORT_TYPE_SENDMAIL:
-                $transport = new Swift_SendmailTransport($config[static::TRANSPORT_CONFIG_SENDMAIL_CMD]);
+                $transport = new SendmailTransport($config[static::TRANSPORT_CONFIG_SENDMAIL_CMD]);
                 break;
             case static::TRANSPORT_TYPE_SMTP:
-                $transport = new Swift_SmtpTransport(
+                $transport = new SmtpTransport(
                     $config[static::TRANSPORT_CONFIG_SMTP_DOMAIN],
                     $config[static::TRANSPORT_CONFIG_SMTP_PORT]
                 );
@@ -62,21 +61,21 @@ class DefaultMailManager implements MailManagerInterface
         return $transport;
     }
 
-    public function getMailer(): Swift_Mailer
+    public function getMailer(): Email
     {
         $transport = $this->getTransport();
-        return new Swift_Mailer($transport);
+        return new Email($transport);
     }
 
-    public function createMessage(): Swift_Message
+    public function createMessage(): Email
     {
         $mailer = $this->getMailer();
-        /** @var Swift_Message $message */
+        /** @var Email $message */
         $message = $mailer->createMessage();
         return $message;
     }
 
-    public function sendMessage(Swift_Message $message): bool
+    public function sendMessage(Email $message): bool
     {
         return (bool)$this->getMailer()->send($message);
     }

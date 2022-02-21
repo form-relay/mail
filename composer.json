@@ -34,7 +34,8 @@
     ],
     "require": {
         "php": "^7.2",
-        "form-relay/core": "^2.0"
+        "form-relay/core": "^2.0",
+        "symfony/mailer": "^5.3.4"
     },
     "require-dev": {
         "phpunit/phpunit": "^4.8.35 || ^5.7 || ^6.4 || ^7.0"

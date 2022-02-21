@@ -1,3 +1,8 @@
+3.0.0
+
+[TASK] Replace SwiftMailer with Symfony Mailer
+
+[TASK] Add symfony/mailer as dependency
 
 2.0.1
 

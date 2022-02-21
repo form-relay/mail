@@ -2,10 +2,10 @@
 
 namespace FormRelay\Mail\Manager;
 
-use Swift_Message;
+use Symfony\Component\Mime\Email;
 
 interface MailManagerInterface
 {
-    public function createMessage(): Swift_Message;
-    public function sendMessage(Swift_Message $message): bool;
+    public function createMessage(): Email;
+    public function sendMessage(Email $message): bool;
 }
