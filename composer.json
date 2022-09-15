@@ -1,56 +1,56 @@
 {
-    "name": "form-relay/mail",
-    "type": "library",
-    "description": "FormRelay route for emails.",
-    "keywords": [
-        "framework",
-        "form",
-        "data",
-        "submission",
-        "relay",
-        "email",
-        "mail",
-        "formhandler"
-    ],
-    "homepage": "https://www.mediatis.de",
-    "license": "GPL-2.0+",
-    "authors": [
-        {
-            "name": "Michael Vöhringer",
-            "role": "Developer"
-        },
-        {
-            "name": "Meelis Karulin",
-            "role": "Developer"
-        },
-        {
-            "name": "Damian Ickler",
-            "role": "Developer"
-        },
-        {
-            "name": "Stephan Ude",
-            "role": "Developer"
-        }
-    ],
-    "require": {
-        "php": "^7.2",
-        "form-relay/core": "^2.0",
-        "symfony/mailer": "^5.3.4"
+  "name": "form-relay/mail",
+  "type": "library",
+  "description": "FormRelay route for emails.",
+  "keywords": [
+    "framework",
+    "form",
+    "data",
+    "submission",
+    "relay",
+    "email",
+    "mail",
+    "formhandler"
+  ],
+  "homepage": "https://www.mediatis.de",
+  "license": "GPL-2.0+",
+  "authors": [
+    {
+      "name": "Michael Vöhringer",
+      "role": "Developer"
     },
-    "require-dev": {
-        "phpunit/phpunit": "^4.8.35 || ^5.7 || ^6.4 || ^7.0"
+    {
+      "name": "Meelis Karulin",
+      "role": "Developer"
     },
-    "config": {
-        "sort-packages": true
+    {
+      "name": "Damian Ickler",
+      "role": "Developer"
     },
-    "autoload": {
-        "psr-4": {
-            "FormRelay\\Mail\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "FormRelay\\Mail\\Tests\\": "tests/"
-        }
+    {
+      "name": "Stephan Ude",
+      "role": "Developer"
     }
+  ],
+  "require": {
+    "php": "^7.0 || ^8.0",
+    "form-relay/core": "^2.0",
+    "symfony/mailer": "^5.3.4"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^4.8.35 || ^5.7 || ^6.4 || ^7.0"
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "autoload": {
+    "psr-4": {
+      "FormRelay\\Mail\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "FormRelay\\Mail\\Tests\\": "tests/"
+    }
+  }
 }
