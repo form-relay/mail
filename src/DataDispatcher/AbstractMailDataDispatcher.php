@@ -30,6 +30,7 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
     protected $signMessageBody = false;
     protected $signingCertificate = '';
     protected $signingPrivateKey = '';
+    protected $signingPassword = '';
     
     protected $encryptMessageBody = false;
     protected $encryptionCertificate = '';
@@ -118,7 +119,7 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
             $certificateFilePath = \TYPO3\CMS\Core\Core\Environment::getPublicPath() . '/' . $this->signingCertificate;
             $privateKeyFilePath = \TYPO3\CMS\Core\Core\Environment::getPublicPath() . '/' . $this->signingPrivateKey;
             
-            $signer = new SMimeSigner($certificateFilePath, $privateKeyFilePath);
+            $signer = new SMimeSigner($certificateFilePath, $privateKeyFilePath, $this->signingPassword);
             $signedMessage = $signer->sign($message);
         
             $signedMessageBody = $signedMessage->getBody();
@@ -257,6 +258,16 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
     public function setSigningPrivateKey(string $signingPrivateKey)
     {
         $this->signingPrivateKey = $signingPrivateKey;
+    }
+    
+    public function getSigningPassword(): string
+    {
+        return $this->signingPassword;
+    }
+
+    public function setSigningPassword(string $signingPassword)
+    {
+        $this->signingPassword = $signingPassword;
     }
     
     public function getEncryptMessageBody(): bool

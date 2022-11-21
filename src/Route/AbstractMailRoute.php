@@ -35,6 +35,9 @@ abstract class AbstractMailRoute extends Route
     const KEY_SIGNING_PRIVATE_KEY = 'signingPrivateKey';
     const DEFAULT_SIGNING_PRIVATE_KEY = '';
     
+    const KEY_SIGNING_PASSWORD = 'signingPassword';
+    const DEFAULT_SIGNING_PASSWORD = '';
+    
     const KEY_ENCRYPT_MESSAGE_BODY = 'encryptMessageBody';
     const DEFAULT_ENCRYPT_MESSAGE_BODY = false;
     
@@ -70,6 +73,9 @@ abstract class AbstractMailRoute extends Route
         $signingPrivateKey = $this->resolveContent($this->getConfig(static::KEY_SIGNING_PRIVATE_KEY));
         $dispatcher->setSigningPrivateKey($signingPrivateKey);
         
+        $signingPassword = $this->resolveContent($this->getConfig(static::KEY_SIGNING_PASSWORD));
+        $dispatcher->setSigningPassword($signingPassword);
+        
         $encryptMessageBody = $this->resolveContent($this->getConfig(static::KEY_ENCRYPT_MESSAGE_BODY));
         $dispatcher->setEncryptMessageBody($encryptMessageBody);
         
@@ -90,6 +96,7 @@ abstract class AbstractMailRoute extends Route
                 static::KEY_SIGN_MESSAGE_BODY => static::DEFAULT_SIGN_MESSAGE_BODY,
                 static::KEY_SIGNING_CERTIFICATE => static::DEFAULT_SIGNING_CERTIFICATE,
                 static::KEY_SIGNING_PRIVATE_KEY => static::DEFAULT_SIGNING_PRIVATE_KEY,
+                static::KEY_SIGNING_PASSWORD => static::DEFAULT_SIGNING_PASSWORD,
                 static::KEY_ENCRYPT_MESSAGE_BODY => static::DEFAULT_ENCRYPT_MESSAGE_BODY,
                 static::KEY_ENCRYPTION_CERTIFICATE => static::DEFAULT_ENCRYPTION_CERTIFICATE
             ];
