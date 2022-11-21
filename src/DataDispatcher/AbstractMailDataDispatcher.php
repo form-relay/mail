@@ -17,6 +17,8 @@ use FormRelay\Mail\Utility\MailUtility;
 
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Mime\Exception\RfcComplianceException;
+use Symfony\Component\Mime\Crypto\SMimeSigner;
+use Symfony\Component\Mime\Crypto\SMimeEncrypter;
 
 abstract class AbstractMailDataDispatcher extends DataDispatcher
 {
@@ -24,6 +26,13 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
     protected $templateEngine;
 
     protected $attachUploadedFiles = false;
+    
+    protected $signMessageBody = false;
+    protected $signingCertificate = '';
+    protected $signingPrivateKey = '';
+    
+    protected $encryptMessageBody = false;
+    protected $encryptionCertificate = '';
 
     protected $from = '';
     protected $to = '';
@@ -102,6 +111,39 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
             }
         }
     }
+    
+    protected function signMessage(Email &$message): void
+    {
+        try {
+            $certificateFilePath = \TYPO3\CMS\Core\Core\Environment::getPublicPath() . '/' . $this->signingCertificate;
+            $privateKeyFilePath = \TYPO3\CMS\Core\Core\Environment::getPublicPath() . '/' . $this->signingPrivateKey;
+            
+            $signer = new SMimeSigner($certificateFilePath, $privateKeyFilePath);
+            $signedMessage = $signer->sign($message);
+        
+            $signedMessageBody = $signedMessage->getBody();
+            $message->setBody($signedMessageBody);
+        } catch (\Exception $e) {
+            echo '<pre> Exception signing', $e->getMessage(); var_dump(get_class($e)); // TODO remove
+            throw new FormRelayException($e->getMessage());
+        }
+    }
+
+    protected function encryptMessage(Email &$message): void
+    {
+        try {
+            $certificateFilePath = \TYPO3\CMS\Core\Core\Environment::getPublicPath() . '/' . $this->encryptionCertificate;
+            
+            $encrypter = new SMimeEncrypter($certificateFilePath);
+            $encryptedMessage = $encrypter->encrypt($message);
+
+            $encryptedMessageBody = $encryptedMessage->getBody();
+            $message->setBody($encryptedMessageBody);
+        } catch (\Exception $e) {
+            echo '<pre> Exception encrypt', $e->getMessage(); var_dump(get_class($e)); // TODO remove
+            throw new FormRelayException($e->getMessage());
+        }
+    }
 
     public function send(array $data): bool
     {
@@ -111,6 +153,12 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
             $this->processContent($message, $data);
             if ($this->attachUploadedFiles) {
                 $this->processAttachments($message, $data);
+            }
+            if ($this->signMessageBody) {
+                $this->signMessage($message);
+            }
+            if ($this->encryptMessageBody) {
+                $this->encryptMessage($message);
             }
             return $this->mailManager->sendMessage($message);
         } catch (\Exception $e) {
@@ -179,6 +227,56 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
     public function setAttachUploadedFiles(bool $attachUploadedFiles)
     {
         $this->attachUploadedFiles = $attachUploadedFiles;
+    }
+    
+    public function getSignMessageBody(): bool
+    {
+        return $this->signMessageBody;
+    }
+
+    public function setSignMessageBody(bool $signMessageBody)
+    {
+        $this->signMessageBody = $signMessageBody;
+    }
+    
+    public function getSigningCertificate(): string
+    {
+        return $this->signingCertificate;
+    }
+
+    public function setSigningCertificate(string $signingCertificate)
+    {
+        $this->signingCertificate = $signingCertificate;
+    }
+    
+    public function getSigningPrivateKey(): string
+    {
+        return $this->signingPrivateKey;
+    }
+
+    public function setSigningPrivateKey(string $signingPrivateKey)
+    {
+        $this->signingPrivateKey = $signingPrivateKey;
+    }
+    
+    public function getEncryptMessageBody(): bool
+    {
+        return $this->encryptMessageBody;
+    }
+
+    public function setEncryptMessageBody(bool $encryptMessageBody)
+    {
+        $this->encryptMessageBody = $encryptMessageBody;
+    }
+    
+    public function getEncryptionCertificate(): string
+    {
+        return $this->encryptionCertificate;
+    }
+
+    public function setEncryptionCertificate(string $encryptionCertificate)
+    {
+        $this->encryptionCertificate = $encryptionCertificate;
     }
 
     public function getTemplateEngine(): TemplateEngineInterface

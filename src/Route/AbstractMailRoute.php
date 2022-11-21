@@ -25,6 +25,21 @@ abstract class AbstractMailRoute extends Route
 
     const KEY_ATTACH_UPLOADED_FILES = 'includeAttachmentsInMail';
     const DEFAULT_ATTACH_UPLOADED_FILES = false;
+    
+    const KEY_SIGN_MESSAGE_BODY = 'signMessageBody';
+    const DEFAULT_SIGN_MESSAGE_BODY = false;
+    
+    const KEY_SIGNING_CERTIFICATE = 'signingCertificate';
+    const DEFAULT_SIGNING_CERTIFICATE = '';
+    
+    const KEY_SIGNING_PRIVATE_KEY = 'signingPrivateKey';
+    const DEFAULT_SIGNING_PRIVATE_KEY = '';
+    
+    const KEY_ENCRYPT_MESSAGE_BODY = 'encryptMessageBody';
+    const DEFAULT_ENCRYPT_MESSAGE_BODY = false;
+    
+    const KEY_ENCRYPTION_CERTIFICATE = 'encryptionCertificate';
+    const DEFAULT_ENCRYPTION_CERTIFICATE = '';
 
     protected function getDispatcher()
     {
@@ -45,6 +60,21 @@ abstract class AbstractMailRoute extends Route
 
         $attachUploadedFiles = $this->resolveContent($this->getConfig(static::KEY_ATTACH_UPLOADED_FILES));
         $dispatcher->setAttachUploadedFiles($attachUploadedFiles);
+        
+        $signMessageBody = $this->resolveContent($this->getConfig(static::KEY_SIGN_MESSAGE_BODY));
+        $dispatcher->setSignMessageBody($signMessageBody);
+        
+        $signingCertificate = $this->resolveContent($this->getConfig(static::KEY_SIGNING_CERTIFICATE));
+        $dispatcher->setSigningCertificate($signingCertificate);
+        
+        $signingPrivateKey = $this->resolveContent($this->getConfig(static::KEY_SIGNING_PRIVATE_KEY));
+        $dispatcher->setSigningPrivateKey($signingPrivateKey);
+        
+        $encryptMessageBody = $this->resolveContent($this->getConfig(static::KEY_ENCRYPT_MESSAGE_BODY));
+        $dispatcher->setEncryptMessageBody($encryptMessageBody);
+        
+        $encryptionCertificate = $this->resolveContent($this->getConfig(static::KEY_ENCRYPTION_CERTIFICATE));
+        $dispatcher->setEncryptionCertificate($encryptionCertificate);
 
         return $dispatcher;
     }
@@ -57,6 +87,11 @@ abstract class AbstractMailRoute extends Route
                 static::KEY_REPLY_TO => static::DEFAULT_REPLY_TO,
                 static::KEY_SUBJECT => static::DEFAULT_SUBJECT,
                 static::KEY_ATTACH_UPLOADED_FILES => static::DEFAULT_ATTACH_UPLOADED_FILES,
+                static::KEY_SIGN_MESSAGE_BODY => static::DEFAULT_SIGN_MESSAGE_BODY,
+                static::KEY_SIGNING_CERTIFICATE => static::DEFAULT_SIGNING_CERTIFICATE,
+                static::KEY_SIGNING_PRIVATE_KEY => static::DEFAULT_SIGNING_PRIVATE_KEY,
+                static::KEY_ENCRYPT_MESSAGE_BODY => static::DEFAULT_ENCRYPT_MESSAGE_BODY,
+                static::KEY_ENCRYPTION_CERTIFICATE => static::DEFAULT_ENCRYPTION_CERTIFICATE
             ];
     }
 }
