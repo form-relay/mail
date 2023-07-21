@@ -79,12 +79,12 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
         $plainBody = $this->getPlainBody($data);
         $htmlBody = $this->getHtmlBody($data);
         if ($htmlBody) {
-            $message->html($htmlBody, 'text/html');
+            $message->html($htmlBody);
             if ($plainBody) {
-                $message->text($plainBody, 'text/plain');
+                $message->text($plainBody);
             }
         } elseif ($plainBody) {
-            $message->text($plainBody, 'text/plain');
+            $message->text($plainBody);
         }
     }
 
@@ -95,7 +95,7 @@ abstract class AbstractMailDataDispatcher extends DataDispatcher
             /** @var UploadField $uploadField */
             foreach ($uploadFields as $uploadField) {
                 $message->attachFromPath(
-                        $uploadField->getRelativePath(), 
+                        $uploadField->getRelativePath(),
                         $uploadField->getFileName(),
                         $uploadField->getMimeType()
                 );
